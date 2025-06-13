@@ -9,8 +9,23 @@ router = APIRouter(prefix="/loans", tags=["loans"])
 
 
 @router.get("/", response_model=list[LoanRead])
-def read_loans(db: Session = Depends(get_db)):
-    return db.query(Loan).all()
+def read_loans(
+    member_id: int | None = None,
+    book_id: int | None = None,
+    returned: bool | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Loan)
+    if member_id is not None:
+        query = query.filter(Loan.member_id == member_id)
+    if book_id is not None:
+        query = query.filter(Loan.book_id == book_id)
+    if returned is not None:
+        if returned:
+            query = query.filter(Loan.return_date.isnot(None))
+        else:
+            query = query.filter(Loan.return_date.is_(None))
+    return query.all()
 
 
 @router.post("/", response_model=LoanRead, status_code=201)

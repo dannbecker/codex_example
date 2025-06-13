@@ -9,8 +9,17 @@ router = APIRouter(prefix="/members", tags=["members"])
 
 
 @router.get("/", response_model=list[MemberRead])
-def read_members(db: Session = Depends(get_db)):
-    return db.query(Member).all()
+def read_members(
+    name: str | None = None,
+    email: str | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Member)
+    if name:
+        query = query.filter(Member.name.ilike(f"%{name}%"))
+    if email:
+        query = query.filter(Member.email.ilike(f"%{email}%"))
+    return query.all()
 
 
 @router.post("/", response_model=MemberRead, status_code=201)
