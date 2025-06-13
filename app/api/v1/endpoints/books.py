@@ -9,8 +9,17 @@ router = APIRouter(prefix="/books", tags=["books"])
 
 
 @router.get("/", response_model=list[BookRead])
-def read_books(db: Session = Depends(get_db)):
-    return db.query(Book).all()
+def read_books(
+    title: str | None = None,
+    author: str | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Book)
+    if title:
+        query = query.filter(Book.title.ilike(f"%{title}%"))
+    if author:
+        query = query.filter(Book.author.ilike(f"%{author}%"))
+    return query.all()
 
 
 @router.post("/", response_model=BookRead, status_code=201)
